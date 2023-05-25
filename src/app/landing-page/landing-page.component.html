@@ -1,0 +1,87 @@
+<div class="container">
+  <header class="landing-header">
+    <div class="landing-title">21 Online</div>
+    <div class="landing-description">Multiplayer Blackjack game</div>
+  </header>
+
+  <!-- 創建、加入房間 -->
+  <div class="landing-container">
+    <div class="landing-box">
+
+      <button class="room-create-btn" (click)="navigateToGamePage()">Create room</button>
+
+      <span class="strike-block"> or </span>
+
+      <mat-form-field class="landing-form" [hideRequiredMarker]="true">
+        <mat-label>Room ID</mat-label>
+        <input type="text" class="roomId-input" matInput (click)="enableButton()" (blur)="disableButton()"
+          [(ngModel)]="roomInputId" name="roomInputId" />
+      </mat-form-field>
+
+
+      <div class="landing-join">
+        <button class="room-join-btn" (click)="joinRoom()" >
+          Join room
+        </button>
+      </div>
+
+
+    </div>
+
+    <!-- Starting Anime -->
+    <div>
+      <span class="starting" style="--i:0;"></span>
+      <span class="starting" style="--i:1;"></span>
+      <span class="starting" style="--i:2;"></span>
+      <span class="starting" style="--i:3;"></span>
+      <span class="starting" style="--i:4;"></span>
+      <span class="starting" style="--i:5;"></span>
+      <span class="starting" style="--i:6;"></span>
+      <span class="starting" style="--i:7;"></span>
+      <span class="starting" style="--i:8;"></span>
+      <span class="starting" style="--i:9;"></span>
+      <span class="starting" style="--i:10;"></span>
+      <span class="starting" style="--i:11;"></span>
+      <span class="starting" style="--i:12;"></span>
+      <span class="starting" style="--i:13;"></span>
+      <span class="starting" style="--i:14;"></span>
+      <span class="starting" style="--i:15;"></span>
+      <span class="starting" style="--i:16;"></span>
+      <span class="starting" style="--i:17;"></span>
+      <span class="starting" style="--i:18;"></span>
+      <span class="starting" style="--i:19;"></span>
+      <span class="starting" style="--i:20;"></span>
+      <span class="starting" style="--i:21;"></span>
+      <span class="starting" style="--i:22;"></span>
+      <span class="starting" style="--i:23;"></span>
+      <span class="starting" style="--i:24;"></span>
+      <span class="starting" style="--i:25;"></span>
+      <span class="starting" style="--i:26;"></span>
+      <span class="starting" style="--i:27;"></span>
+      <span class="starting" style="--i:28;"></span>
+      <span class="starting" style="--i:29;"></span>
+      <span class="starting" style="--i:30;"></span>
+      <span class="starting" style="--i:31;"></span>
+      <span class="starting" style="--i:32;"></span>
+      <span class="starting" style="--i:33;"></span>
+      <span class="starting" style="--i:34;"></span>
+      <span class="starting" style="--i:35;"></span>
+      <span class="starting" style="--i:36;"></span>
+      <span class="starting" style="--i:37;"></span>
+      <span class="starting" style="--i:38;"></span>
+      <span class="starting" style="--i:39;"></span>
+      <span class="starting" style="--i:40;"></span>
+      <span class="starting" style="--i:41;"></span>
+      <span class="starting" style="--i:42;"></span>
+      <span class="starting" style="--i:43;"></span>
+      <span class="starting" style="--i:44;"></span>
+      <span class="starting" style="--i:45;"></span>
+      <span class="starting" style="--i:46;"></span>
+      <span class="starting" style="--i:47;"></span>
+      <span class="starting" style="--i:48;"></span>
+      <span class="starting" style="--i:49;"></span>
+    </div>
+
+
+  </div>
+</div>

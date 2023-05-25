@@ -1,0 +1,25 @@
+.Tablecontainer {
+    position: relative;
+    width: 100%;
+}
+
+.table {
+    width: 55rem;
+    background-color: #a1a692;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-radius: 90%;
+    z-index: 2;
+    position: relative;
+}
+
+.dealer {
+    position: absolute;
+    top: -3rem;
+    width: 13rem;
+    z-index: 3;
+    left: 20rem;
+}

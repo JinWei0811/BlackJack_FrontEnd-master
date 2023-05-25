@@ -1,0 +1,113 @@
+<div class="card-container">
+  <!-- 顯示莊家手牌 -->
+  <div class="card-playing">
+    <div>
+      <div class="dealer">
+        <!-- 使用ngFor迴圈顯示莊家的每張手牌 -->
+        <img
+          class="card-size"
+          *ngFor="let card of dealerCards; let i = index"
+          [src]="
+            imagePath +
+            (i === 1 && !dealerSecondCardVisible
+              ? 'card-Back-blue-5.png'
+              : card + '.png')
+          "
+          alt="card"
+          [@dealAnimation]
+        />
+      </div>
+      <p *ngIf="startDealerValueHidden" class="card-value1">
+        點數總和: {{ getDealerPoints() }}
+      </p>
+    </div>
+
+    <!-- 顯示1號玩家手牌 -->
+    <div>
+      <div class="player1-card">
+        <!-- 使用ngFor迴圈顯示玩家的每張手牌 -->
+        <img
+          class="card-size"
+          *ngFor="let card of playerCards"
+          [src]="imagePath + card + '.png'"
+          alt="card"
+          [@dealAnimation]
+        />
+      </div>
+      <p class="card-value2">點數總和: {{ getPlayerPoints() }}</p>
+    </div>
+
+    <!-- 顯示遊戲結果 -->
+    <div *ngIf="gameResult">
+      <h2>遊戲結果: {{ gameResult }}</h2>
+    </div>
+  </div>
+
+  <!-- 玩家按鈕 -->
+
+  <!-- 顯示2號玩家手牌 -->
+  <div class="player2">
+    <div class="player2-card">
+      <img
+        class="card-size"
+        *ngFor="let card of player2Cards"
+        [src]="imagePath + card + '.png'"
+        alt="card"
+        [@dealAnimation]
+      />
+    </div>
+    <div *ngIf="startPlayer2ValueHidden">
+      <p class="card-value2">點數總和: {{ getPlayer2Points() }}</p>
+      <div class="player2State">
+        <span>{{ player2gameResult }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 玩家按鈕 -->
+  <div class="player-action-btn">
+    <div class="flex flex-col-reverse sm:flex-col gap-4 mt-20 pt-10">
+      <div class="pill-menu">
+        <span class="whitespace-normal">
+          Current Bet:
+          <span class="inline-block text-center" style="width: 4ch">100</span>
+        </span>
+
+        <span class="whitespace-normal"> Change Bet: {{ betChange }}</span>
+        <button (click)="changeBet(-50)">- 50</button>
+        <button (click)="changeBet(-10)">- 10</button>
+        <button (click)="changeBet(10)">+ 10</button>
+        <button (click)="changeBet(50)">+ 50</button>
+
+        <button (click)="setBet()">Set Bet:</button>
+        <input
+          class="w-24"
+          #betInput
+          type="number"
+          [value]="currentBet"
+          appInputConstrain
+        />
+      </div>
+
+      <!-- 開始前 : 準備與自動 -->
+      <div class="pill-menu" *ngIf="!readyMenuHidden">
+        <button style="flex-grow: 100" (click)="readyClicked()">Ready</button>
+        <div class="h-9">
+          <mat-checkbox
+            class="-mt-2.5 mr-4"
+            matTooltip="Automatically sets player as ready after every round"
+            >Auto Ready</mat-checkbox
+          >
+        </div>
+      </div>
+
+      <!-- 開始後 :  -->
+      <div class="pill-menu" *ngIf="readyMenuHidden">
+        <button (click)="stand()">Stay</button>
+        <button (click)="hit()">Hit</button>
+        <button (click)="unReadyClicked()">Back</button>
+      </div>
+      <span class="text-neutral-400 self-end m-auto"> Room ID: {{ roomId }}</span>
+    </div>
+  </div>
+</div>

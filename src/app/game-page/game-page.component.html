@@ -1,0 +1,16 @@
+<div class="flex flex-col min-h-screen p-4">
+  <div class="flex justify-start">
+    <app-setting></app-setting>
+  </div>
+  <!-- 玩家畫面 -->
+  <div class="player-screen">
+    <app-player [roomId]="roomId" [players]="players" [sessionId]="sessionId" [playerName]="playerName"></app-player>
+  </div>
+  <!-- 玩家選項 -->
+  <!-- <div class="flex justify-center items-center flex-grow mt-3">
+      <app-player-action>
+        
+      </app-player-action>
+    </div> -->
+
+</div>

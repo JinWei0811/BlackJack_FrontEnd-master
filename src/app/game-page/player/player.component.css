@@ -1,0 +1,91 @@
+/* :host {
+    display: grid;
+    place-items: center;
+  }
+  
+  :host > * {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .hand {
+    display: grid;
+    grid-auto-columns: calc(var(--playing-card-width) * 0.5);
+    grid-auto-flow: column;
+  }
+  
+  .primary-border {
+    outline-color: var(--theme-primary-color);
+    outline-width: 2px;
+    outline-style: solid;
+  } */
+
+.player {
+  position: relative;
+  right: 1.5rem;
+  z-index: 3;
+  
+}
+
+.player-people {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.player1 {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  bottom: 3.5rem;
+  left: 26rem;
+  width: 100px;
+  height: 60px;
+  background-color: gray;
+  opacity: 0.5;
+  border-radius: 10%;
+  padding: 3px;
+
+}
+
+.player2 {
+  position: absolute;
+  width: 100px;
+  height: 60px;
+  background-color: gray;
+  opacity: 0.5;
+  bottom: 8rem;
+  left: 11rem;
+  border-radius: 10%;
+  padding: 3px;
+}
+
+.player3 {
+  position: absolute;
+  width: 100px;
+  height: 60px;
+  background-color: gray;
+  opacity: 0.5;
+  bottom: 7.5rem;
+  left: 41rem;
+  border-radius: 10%;
+  padding: 3px;
+}
+
+.kick-player-btn {
+  width: 25px;
+  height: 25px;
+  bottom: 4rem;
+  right: 0.5rem;
+}
+
+.playing-card1 {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 20vh;
+  /* background-color: antiquewhite; */
+  /* opacity: 0.7; */
+  z-index: 3;  
+}
+
