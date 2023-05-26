@@ -1,4 +1,10 @@
+import { card } from "./card";
+
 export class playerInfo {
-    name!: string;
-    state!: string;
+    sessionId?: string;
+    name?: string;
+    state?: string;
+    chip?: number;
+    hand?: card[];
+    point?: number;
 }

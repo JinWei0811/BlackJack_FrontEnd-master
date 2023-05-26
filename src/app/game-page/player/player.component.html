@@ -18,8 +18,9 @@
   </div>
   <!-- 牌畫面 -->
   <div class="playing-card1">
-    <app-playing-card (gameResultEvent)="handleGameResult($event)" [roomId]="roomId"
-      [sessionId]="sessionId" [playerName]="playerName"></app-playing-card>
+    <app-playing-card (gameResultEvent)="handleGameResult($event)" [roomId]="roomId" [sessionId]="sessionId"
+      [playerName]="playerName" [players]="players" [readyMenuHidden]="readyMenuHidden" [botPlayer]="botPlayer"
+      [isAllStay]="isAllStay" ></app-playing-card>
   </div>
 
 

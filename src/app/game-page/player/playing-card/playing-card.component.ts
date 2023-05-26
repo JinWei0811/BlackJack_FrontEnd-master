@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit, OnDestroy, OnChanges, DoCheck } from '@angular/core';
 import {
   trigger,
   state,
@@ -7,6 +7,8 @@ import {
   animate,
 } from '@angular/animations';
 import { WebSocketSubject } from 'rxjs/webSocket';
+import { playerInfo } from 'src/model/player';
+import * as _ from 'lodash'
 
 @Component({
   selector: 'app-playing-card',
@@ -19,15 +21,22 @@ import { WebSocketSubject } from 'rxjs/webSocket';
     ]),
   ],
 })
-export class PlayingCardComponent implements OnInit {
+export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoCheck {
   socket$: WebSocketSubject<any> = new WebSocketSubject('ws://localhost:8080/connect');
 
   @Output() gameResultEvent = new EventEmitter<string>();
   @Input() roomId: string = '';
   @Input() sessionId: string = '';
   @Input() playerName: string = '';
+  @Input() players: playerInfo[] = [];
+  @Input() readyMenuHidden: boolean = false;
+  @Input() botPlayer: playerInfo = {};
+  @Input() isAllStay: boolean = false;
+  startCheck: boolean = false;
+  isPlayerBust: boolean = false;
 
 
+  stagingPlayers: playerInfo[] = [];
   imagePath = '../../../assets/images/Cards/';
 
   dealerCards: string[] = []; // 莊家手牌
@@ -58,7 +67,6 @@ export class PlayingCardComponent implements OnInit {
     'A',
   ];
 
-  readyMenuHidden: boolean = false;
   startDealerValueHidden: boolean = false;
   startPlayer2ValueHidden: boolean = false;
   // 莊家第二張牌為覆蓋狀態
@@ -66,12 +74,32 @@ export class PlayingCardComponent implements OnInit {
 
   dealAnimationInProgress: boolean = false;
 
+  ngOnChanges(): void {
+    if (this.readyMenuHidden && !this.startCheck) {
+      this.dealCards();
+    }
+  }
+
+  ngDoCheck(): void {
+    if (this.players[0].state === 'skip' || this.players[0].state === 'bust') {
+      this.isPlayerBust = true;
+    }
+
+    if (this.startCheck && !this.isAllStay) {
+      this.checkPlayerCards();
+      this.checkPlayer2Cards();
+    }
+    if (this.isAllStay) {
+      this.checkDealerCards();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.socket$.unsubscribe();
+  }
+
   ngOnInit(): void {
-    this.socket$.subscribe(
-      message => { console.log(message) },
-      err => { console.log(err) },
-      () => { console.log('complete') }
-    )
+    this.socket$.subscribe()
   }
 
   startDealerClicked(): void {
@@ -107,32 +135,51 @@ export class PlayingCardComponent implements OnInit {
 
     // 延遲莊家、玩家手牌出現的時間
     setTimeout(() => {
-      this.playerCards.push(this.getRandomCard());
+      // this.playerCards.push(this.getRandomCard());
+      let hand = this.players[0].hand;
+      this.playerCards.push(`card-${hand![0].suits}-${hand![0].rank}`);
     }, 500);
 
     setTimeout(() => {
-      this.dealerCards.push(this.getRandomCard());
+      // this.dealerCards.push(this.getRandomCard());
+      let hand = this.botPlayer.hand;
+      this.dealerCards.push(`card-${hand![0].suits}-${hand![0].rank}`);
     }, 1000);
 
     setTimeout(() => {
-      this.player2Cards.push(this.getRandomCard());
+      // this.player2Cards.push(this.getRandomCard());
+      if (!_.isNil(this.players[1])) {
+        let hand = this.players[1].hand;
+        this.player2Cards.push(`card-${hand![0].suits}-${hand![0].rank}`);
+      }
     }, 1500);
 
     setTimeout(() => {
-      this.playerCards.push(this.getRandomCard());
+      // this.playerCards.push(this.getRandomCard());
+      let hand = this.players[0].hand;
+      this.playerCards.push(`card-${hand![1].suits}-${hand![1].rank}`);
     }, 2000);
 
     setTimeout(() => {
-      this.player2Cards.push(this.getRandomCard());
+      // this.player2Cards.push(this.getRandomCard());
+      if (!_.isNil(this.players[1])) {
+        let hand = this.players[1].hand;
+        this.player2Cards.push(`card-${hand![1].suits}-${hand![1].rank}`);
+      }
     }, 2500);
 
 
     setTimeout(() => {
-      this.dealerCards.push(this.getRandomCard());
+      // this.dealerCards.push(this.getRandomCard());
+      let hand = this.botPlayer.hand;
+      this.dealerCards.push(`card-${hand![1].suits}-${hand![1].rank}`);
       this.dealAnimationInProgress = false; // 停止發牌
       this.dealerSecondCardVisible = false;
       this.startPlayer2ValueHidden = true;
+      this.startCheck = true;
+      console.log("isover");
     }, 3000);
+
   }
 
   triggerDealAnimation() {
@@ -149,20 +196,115 @@ export class PlayingCardComponent implements OnInit {
     }
   }
 
+  checkDealerCards() {
+    let newHand = this.botPlayer.hand;
+    let newCards = [] as string[];
+    if (newHand != null) {
+      for (let hand of newHand) {
+        newCards.push(`card-${hand.suits}-${hand.rank}`)
+      }
+    }
+
+    if (this.dealerCards.length < newCards?.length) {
+      var temp = _.difference(newCards, this.dealerCards)
+      if (temp.length > 0) {
+        this.dealerCards.push(temp[0]);
+      }
+    }
+
+    if (this.botPlayer.state === 'skip' || this.botPlayer.state === 'bust') {
+      this.checkGameResult();
+    }
+  }
+
+  checkPlayerCards() {
+    // if (this.players[0]?.state === 'skip' || this.players[0]?.state === 'bust') {
+    //   return;
+    // }
+    console.log(this.players[0].state);
+    for (let player of this.players) {
+      // if (player.name === response.name) {
+      //   if (this.players.length == 1) {
+      //     this.isAllStay = true;
+      //   }
+      //   break;
+      // }
+      if (player.state !== 'skip') {
+        if (player.state !== 'bust') {
+          this.isAllStay = false;
+          break;
+        }
+      }
+      this.isAllStay = true;
+    }
+
+    let newHand = this.players.find(v => v?.name === this.players[0]?.name)?.hand;
+    let newCards = [] as string[];
+    if (newHand != null) {
+      for (let hand of newHand) {
+        newCards.push(`card-${hand.suits}-${hand.rank}`)
+      }
+    }
+    if (this.playerCards.length < newCards?.length) {
+      var temp = _.difference(newCards, this.playerCards)
+      if (temp.length > 0) {
+        this.playerCards.push(temp[0]);
+      }
+    }
+
+    if (this.isAllStay) {
+      this.dealerSecondCardVisible = true;
+    }
+  }
+
+  checkPlayer2Cards() {
+    // if (this.players[1]?.state === 'skip' || this.players[1]?.state === 'bust') {
+    //   return;
+    // }
+    let newHand = this.players.find(v => v?.name === this.players[1]?.name)?.hand;
+    let newCards = [] as string[];
+    if (newHand != null) {
+      for (let hand of newHand) {
+        newCards.push(`card-${hand.suits}-${hand.rank}`)
+      }
+    }
+
+    if (this.player2Cards.length != newCards?.length) {
+      var temp = _.difference(newCards, this.player2Cards)
+      if (temp.length > 0) {
+        this.player2Cards.push(temp[0]);
+      }
+    }
+  }
+
   hit() {
     // 玩家要牌
-    this.dealerSecondCardVisible = true;
-    this.playerCards.push(this.getRandomCard());
-    this.checkGameResult();
+    const playerHitMessage = {
+      name: this.playerName,
+      method: 'hit',
+      roomId: this.roomId,
+      sessionId: this.sessionId
+    }
+    this.socket$.next(playerHitMessage);
+    // this.dealerSecondCardVisible = true;
+    // this.playerCards.push(this.getRandomCard());
+    // this.checkGameResult();
   }
 
   stand() {
     // 玩家停牌，莊家出牌
-    this.dealerSecondCardVisible = true;
-    while (this.getDealerPoints() < 17) {
-      this.dealerCards.push(this.getRandomCard());
+    // this.dealerSecondCardVisible = true;
+    // while (this.getDealerPoints() < 17) {
+    //   this.dealerCards.push(this.getRandomCard());
+    // }
+    // this.checkGameResult();
+    const playerSkipMessage = {
+      name: this.playerName,
+      method: 'skip',
+      roomId: this.roomId,
+      sessionId: this.sessionId
     }
-    this.checkGameResult();
+    this.socket$.next(playerSkipMessage);
   }
 
   // 玩家2號
@@ -293,15 +435,16 @@ export class PlayingCardComponent implements OnInit {
 
   // 賭注按鈕
   changeBet(amount: number): void {
-    const inputElement = (document.querySelector('input') as HTMLInputElement);
-    if (inputElement) {
-      const newBet = parseInt(inputElement.value, 10) + amount;
-      if (newBet >= 0) {
-        const betDifference = newBet - parseInt(inputElement.value, 10);
-        this.currentBet = newBet;
-        this.betChange = betDifference;
-      }
-    }
+    console.log(this.players);
+    // const inputElement = (document.querySelector('input') as HTMLInputElement);
+    // if (inputElement) {
+    //   const newBet = parseInt(inputElement.value, 10) + amount;
+    //   if (newBet >= 0) {
+    //     const betDifference = newBet - parseInt(inputElement.value, 10);
+    //     this.currentBet = newBet;
+    //     this.betChange = betDifference;
+    //   }
+    // }
   }
 
   setBet(): void {
