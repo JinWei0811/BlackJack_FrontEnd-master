@@ -1,75 +1,81 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { colors, animals } from '../../assets/nameDictionary'
-import { connectResponse } from 'src/model/connectResponse';
-
+import { WebSocketSubject } from 'rxjs/webSocket';
+import { colors, animals } from '../../assets/nameDictionary';
+import { connectResponse } from 'src/model/connect';
+import { ToastrService } from 'ngx-toastr';
+import { config } from '../../config/app.config';
+import * as _ from 'lodash';
+import { WebsocketService } from 'src/service/websocket.service';
 
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing-page.component.html',
-  styleUrls: ['./landing-page.component.css']
+  styleUrls: ['./landing-page.component.css'],
 })
-export class LandingPageComponent implements OnInit, OnDestroy {
-
-
+export class LandingPageComponent implements OnInit {
   isButtonDisabled: boolean = true;
-  roomId = new FormControl('', [
-    Validators.required,
-    Validators.minLength(4),
-    Validators.maxLength(4),
-  ]);
-  roomInputId: string = '';
+  connectSuccess: boolean = false;
 
-  socket$: WebSocketSubject<any> = new WebSocketSubject('ws://localhost:8080/connect');
-  sessionId: string = '';
-  playerName: string = '';
+  roomInputId: string;
+  playerName: string;
 
+  webSocket: WebSocket;
 
-  constructor(private router: Router) {
-
-  }
-  ngOnDestroy(): void {
-    this.socket$.unsubscribe();
-  }
+  constructor(
+    private router: Router,
+    private toastr: ToastrService,
+    private websocketService: WebsocketService
+  ) {}
 
   ngOnInit(): void {
+    this.websocketService.connect(config.url).subscribe(
+      (isConnected: boolean) => {
+        this.connectSuccess = isConnected;
+        this.webSocket = this.websocketService.getWebSocket();
+      },
+      (err) => {
+        this.toastr.error('連線伺服器錯誤，請確認伺服器狀態');
+      },
+      () => {}
+    );
     this.subscribeWebSocket();
   }
 
   subscribeWebSocket() {
-    this.socket$.subscribe(
-      message => {
-        let tempMessage = message as connectResponse;
-        const response = {
-          name: this.playerName,
-          roomId: tempMessage.roomId,
-          sessionId: tempMessage.sessionId,
-          playerList: tempMessage.playerList,
-          playerStateList: tempMessage.playerStateList,
-          content: tempMessage.content
-        }
+    this.websocketService.getWebSocket().onmessage = (event: MessageEvent) => {
+      const message = JSON.parse(event?.data) as connectResponse;
+      if (!message) {
+        return;
+      }
 
-        if (response.content === '創建新房間成功') {
-          this.router.navigate(['/GameRoom'], { queryParams: response }); //  game-page 路由
-          this.socket$.unsubscribe();
-        }
+      if (message.method === config.response.create) {
+        this.toastr.info(message.content);
+        this.router.navigate(['/GameRoom'], {
+          queryParams: {
+            message: JSON.stringify(message),
+            playerName: this.playerName,
+          },
+        }); //  game-page 路由
+      }
 
-        if (response.content?.includes('成功加入房間') && response.content?.includes(this.playerName)) {
-          this.router.navigate(['/GameRoom'], { queryParams: response }); //  game-page 路由
-          this.socket$.unsubscribe();
+      if (message.method === config.response.join) {
+        if (message.playerList.includes(this.playerName)) {
+          this.toastr.info(message.content);
+          this.router.navigate(['/GameRoom'], {
+            queryParams: { message: message, playerName: this.playerName },
+          }); //  game-page 路由
+        } else {
+          this.toastr.warning(message.content);
         }
-      },
-      error => { console.error('WebSocket错误:', error); },
-      () => { }
-    );
+      }
+    };
   }
 
   initPlayerName() {
     let firstName = colors[Math.floor(Math.random() * colors.length)];
     let lastName = animals[Math.floor(Math.random() * colors.length)];
-    return `${firstName}-${lastName}`
+    return `${firstName}-${lastName}`;
   }
 
   enableButton() {
@@ -79,22 +85,34 @@ export class LandingPageComponent implements OnInit, OnDestroy {
     this.isButtonDisabled = true;
   }
   navigateToGamePage() {
+    if (!this.connectSuccess) {
+      this.toastr.error('伺服器連線錯誤，請刷新網頁再試');
+      return;
+    }
+
     this.playerName = this.initPlayerName();
     const createRoomMessage = {
       name: this.playerName,
-      method: 'create'
+      method: config.method.create,
     };
-    this.socket$.next(createRoomMessage);
+    this.webSocket.send(JSON.stringify(createRoomMessage));
   }
 
   joinRoom() {
-    console.log('join')
+    if (!this.connectSuccess) {
+      this.toastr.error('伺服器連線錯誤，請刷新網頁再試');
+      return;
+    }
+    if (_.isNil(this.roomInputId)) {
+      this.toastr.warning('請填入 Room ID');
+      return;
+    }
     this.playerName = this.initPlayerName();
     const joinRoomMessage = {
       name: this.playerName,
-      method: 'join',
-      roomId: this.roomInputId
-    }
-    this.socket$.next(joinRoomMessage);
+      method: config.method.join,
+      roomId: this.roomInputId,
+    };
+    this.webSocket.send(JSON.stringify(joinRoomMessage));
   }
 }

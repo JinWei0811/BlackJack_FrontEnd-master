@@ -1,4 +1,13 @@
-import { Component, Output, EventEmitter, Input, OnInit, OnDestroy, OnChanges, DoCheck } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  DoCheck,
+} from '@angular/core';
 import {
   trigger,
   state,
@@ -8,7 +17,8 @@ import {
 } from '@angular/animations';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { playerInfo } from 'src/model/player';
-import * as _ from 'lodash'
+import * as _ from 'lodash';
+import { WebsocketService } from 'src/service/websocket.service';
 
 @Component({
   selector: 'app-playing-card',
@@ -21,9 +31,7 @@ import * as _ from 'lodash'
     ]),
   ],
 })
-export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoCheck {
-  socket$: WebSocketSubject<any> = new WebSocketSubject('ws://localhost:8080/connect');
-
+export class PlayingCardComponent implements OnInit, OnChanges, DoCheck {
   @Output() gameResultEvent = new EventEmitter<string>();
   @Input() roomId: string = '';
   @Input() sessionId: string = '';
@@ -34,7 +42,6 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
   @Input() isAllStay: boolean = false;
   startCheck: boolean = false;
   isPlayerBust: boolean = false;
-
 
   stagingPlayers: playerInfo[] = [];
   imagePath = '../../../assets/images/Cards/';
@@ -71,8 +78,11 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
   startPlayer2ValueHidden: boolean = false;
   // 莊家第二張牌為覆蓋狀態
   dealerSecondCardVisible: boolean = false;
-
   dealAnimationInProgress: boolean = false;
+
+  webSocket: WebSocket;
+
+  constructor(private webSocketService: WebsocketService) {}
 
   ngOnChanges(): void {
     if (this.readyMenuHidden && !this.startCheck) {
@@ -94,12 +104,8 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
     }
   }
 
-  ngOnDestroy(): void {
-    this.socket$.unsubscribe();
-  }
-
   ngOnInit(): void {
-    this.socket$.subscribe()
+    this.webSocket = this.webSocketService.getWebSocket();
   }
 
   startDealerClicked(): void {
@@ -111,11 +117,9 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       name: this.playerName,
       method: 'ready',
       roomId: this.roomId,
-      sessionId: this.sessionId
-    }
-    this.socket$.next(readyMessage)
-    // this.readyMenuHidden = !this.readyMenuHidden;
-    // this.dealCards();
+      sessionId: this.sessionId,
+    };
+    this.webSocket.send(JSON.stringify(readyMessage));
   }
 
   unReadyClicked(): void {
@@ -168,7 +172,6 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       }
     }, 2500);
 
-
     setTimeout(() => {
       // this.dealerCards.push(this.getRandomCard());
       let hand = this.botPlayer.hand;
@@ -177,9 +180,8 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       this.dealerSecondCardVisible = false;
       this.startPlayer2ValueHidden = true;
       this.startCheck = true;
-      console.log("isover");
+      console.log('isover');
     }, 3000);
-
   }
 
   triggerDealAnimation() {
@@ -201,12 +203,12 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
     let newCards = [] as string[];
     if (newHand != null) {
       for (let hand of newHand) {
-        newCards.push(`card-${hand.suits}-${hand.rank}`)
+        newCards.push(`card-${hand.suits}-${hand.rank}`);
       }
     }
 
     if (this.dealerCards.length < newCards?.length) {
-      var temp = _.difference(newCards, this.dealerCards)
+      var temp = _.difference(newCards, this.dealerCards);
       if (temp.length > 0) {
         this.dealerCards.push(temp[0]);
       }
@@ -238,15 +240,17 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       this.isAllStay = true;
     }
 
-    let newHand = this.players.find(v => v?.name === this.players[0]?.name)?.hand;
+    let newHand = this.players.find(
+      (v) => v?.name === this.players[0]?.name
+    )?.hand;
     let newCards = [] as string[];
     if (newHand != null) {
       for (let hand of newHand) {
-        newCards.push(`card-${hand.suits}-${hand.rank}`)
+        newCards.push(`card-${hand.suits}-${hand.rank}`);
       }
     }
     if (this.playerCards.length < newCards?.length) {
-      var temp = _.difference(newCards, this.playerCards)
+      var temp = _.difference(newCards, this.playerCards);
       if (temp.length > 0) {
         this.playerCards.push(temp[0]);
       }
@@ -261,16 +265,18 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
     // if (this.players[1]?.state === 'skip' || this.players[1]?.state === 'bust') {
     //   return;
     // }
-    let newHand = this.players.find(v => v?.name === this.players[1]?.name)?.hand;
+    let newHand = this.players.find(
+      (v) => v?.name === this.players[1]?.name
+    )?.hand;
     let newCards = [] as string[];
     if (newHand != null) {
       for (let hand of newHand) {
-        newCards.push(`card-${hand.suits}-${hand.rank}`)
+        newCards.push(`card-${hand.suits}-${hand.rank}`);
       }
     }
 
     if (this.player2Cards.length != newCards?.length) {
-      var temp = _.difference(newCards, this.player2Cards)
+      var temp = _.difference(newCards, this.player2Cards);
       if (temp.length > 0) {
         this.player2Cards.push(temp[0]);
       }
@@ -283,9 +289,9 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       name: this.playerName,
       method: 'hit',
       roomId: this.roomId,
-      sessionId: this.sessionId
-    }
-    this.socket$.next(playerHitMessage);
+      sessionId: this.sessionId,
+    };
+    this.webSocket.send(JSON.stringify(playerHitMessage));
     // this.dealerSecondCardVisible = true;
     // this.playerCards.push(this.getRandomCard());
     // this.checkGameResult();
@@ -302,9 +308,9 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
       name: this.playerName,
       method: 'skip',
       roomId: this.roomId,
-      sessionId: this.sessionId
-    }
-    this.socket$.next(playerSkipMessage);
+      sessionId: this.sessionId,
+    };
+    this.webSocket.send(JSON.stringify(playerSkipMessage));
   }
 
   // 玩家2號
@@ -322,8 +328,6 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
   getPlayer2Points() {
     return this.calculatePoints(this.player2Cards);
   }
-
-
 
   reset() {
     // 重置遊戲狀態
@@ -416,22 +420,21 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
 
     if (player2Points > 21) {
       // 玩家2爆牌
-      this.player2gameResult = '🙈'
+      this.player2gameResult = '🙈';
     } else if (player2Points === 21 && this.player2Cards.length === 2) {
       // 玩家2獲得21點
-      this.player2gameResult = '😍'
+      this.player2gameResult = '😍';
     } else if (player2Points > dealerPoints) {
       // 玩家2點數大於莊家
-      this.player2gameResult = '😎'
+      this.player2gameResult = '😎';
     } else if (player2Points < dealerPoints) {
       // 玩家2點數小於莊家
-      this.player2gameResult = '😭'
+      this.player2gameResult = '😭';
     } else {
       // 玩家2和莊家點數相同
-      this.player2gameResult = '😐'
+      this.player2gameResult = '😐';
     }
   }
-
 
   // 賭注按鈕
   changeBet(amount: number): void {
@@ -448,14 +451,10 @@ export class PlayingCardComponent implements OnInit, OnDestroy, OnChanges, DoChe
   }
 
   setBet(): void {
-    const inputElement = (document.querySelector('input') as HTMLInputElement);
+    const inputElement = document.querySelector('input') as HTMLInputElement;
     if (inputElement) {
       const newBet = parseInt(inputElement.value, 10);
       this.currentBet = newBet;
     }
   }
 }
-
-
-
-

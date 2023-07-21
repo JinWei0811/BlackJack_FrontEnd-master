@@ -7,7 +7,7 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./player-table.component.css']
 })
 export class PlayerTableComponent {
-  @Input() gameResult: string = ''; // 接收游戏结果
+  @Input() gameResult: string ;
 
 
   tablePath: string = '../../../assets/images/BJtable.png'

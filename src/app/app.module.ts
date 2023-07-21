@@ -19,14 +19,13 @@ import { LayoutModule } from '@angular/cdk/layout';
 import { GamePageComponent } from './game-page/game-page.component';
 import { PlayerComponent } from './game-page/player/player.component';
 import { PlayerActionComponent } from './game-page/player-action/player-action.component';
-import { HandScoreComponent } from './game-page/player/hand-score/hand-score.component';
 import { MoneyCounterComponent } from './game-page/player/money-counter/money-counter.component';
 import { PlayingCardComponent } from './game-page/player/playing-card/playing-card.component';
 import { TimestampProgressBarComponent } from './game-page/player/timestamp-progress-bar/timestamp-progress-bar.component';
 import { PlayerTableComponent } from './game-page/player/player-table/player-table.component';
 import { SettingComponent } from './game-page/player/setting/setting.component';
 import { FormsModule } from '@angular/forms';
-
+import { ToastrModule, ToastrConfig } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -35,7 +34,6 @@ import { FormsModule } from '@angular/forms';
     GamePageComponent,
     PlayerComponent,
     PlayerActionComponent,
-    HandScoreComponent,
     MoneyCounterComponent,
     PlayingCardComponent,
     TimestampProgressBarComponent,
@@ -57,9 +55,12 @@ import { FormsModule } from '@angular/forms';
     ClipboardModule,
     MatCheckboxModule,
     LayoutModule,
-    FormsModule    
+    FormsModule,
+    ToastrModule.forRoot({
+      positionClass: 'toast-top-right'
+    }),
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
